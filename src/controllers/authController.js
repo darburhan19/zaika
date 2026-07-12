@@ -94,10 +94,8 @@ export const register = asyncHandler(async (req, res) => {
     name: body.name,
     email: body.email,
     password: body.password,
-    // allow setting admin role only if client explicitly sends role === 'admin'
-    // NOTE: For production, replace this with a secure admin-only creation flow.
-    role: req.body?.role === 'admin' ? 'admin' : undefined,
-    isAdmin: req.body?.role === 'admin'
+    role: 'customer',
+    isAdmin: false
   });
 
   const { accessToken, refreshToken } = issueTokenPair(user);

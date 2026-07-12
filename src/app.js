@@ -20,8 +20,26 @@ import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
   const app = express();
-  // When using cookies/credentials, CORS must not use '*' as origin.
-  const origin = process.env.CORS_ORIGIN || process.env.CLIENT_URL || 'http://localhost:5173';
+  // When using cookies/credentials, CORS must not use '*'.
+  const allowedOrigins = [
+    process.env.CORS_ORIGIN,
+    process.env.CLIENT_URL
+  ]
+    .flatMap((value) => (value ? value.split(',') : []))
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const isOriginAllowed = (requestOrigin) => {
+    if (!requestOrigin) {
+      return true;
+    }
+
+    if (allowedOrigins.length === 0) {
+      return requestOrigin === 'http://localhost:5173';
+    }
+
+    return allowedOrigins.includes(requestOrigin);
+  };
 
 
   app.use(
@@ -31,7 +49,14 @@ export function createApp() {
   );
   app.use(
     cors({
-      origin,
+      origin(requestOrigin, callback) {
+        if (isOriginAllowed(requestOrigin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(null, false);
+      },
       credentials: true
     })
   );
