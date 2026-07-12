@@ -14,8 +14,7 @@ const schema = z
     name: z.string().min(2, 'Name is required'),
     email: z.string().email('Enter a valid email'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string().min(6, 'Confirm your password'),
-    role: z.string().optional()
+    confirmPassword: z.string().min(6, 'Confirm your password')
   })
   .refine((values) => values.password === values.confirmPassword, {
     message: 'Passwords do not match',
@@ -35,15 +34,11 @@ export function RegisterPage() {
       const response = await authService.register({
         name: values.name,
         email: values.email,
-        password: values.password,
-        // Optional: allow role for testing; remove in production.
-        role: values?.role
+        password: values.password
       });
 
       setAuth(response.data);
-      const role = String(response.data?.user?.role || '').replace(/["']/g, '').trim().toLowerCase();
-      const isAdmin = role.includes('admin') || response.data?.user?.isAdmin === true || response.data?.user?.admin === true;
-      navigate(isAdmin ? '/admin' : '/');
+      navigate('/');
     } catch (error) {
       setSubmitError(error?.response?.data?.message || 'Registration failed. Please try again.');
     }
@@ -66,17 +61,6 @@ export function RegisterPage() {
             {...register('confirmPassword')}
           />
           {submitError ? <p className="text-sm text-red-400">{submitError}</p> : null}
-          <div>
-            <label className="mb-2 block text-sm text-white/70">Role (admin for test)</label>
-            <select
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white/80 outline-none"
-              defaultValue="customer"
-              {...register('role')}
-            >
-              <option value="customer">customer</option>
-              <option value="admin">admin</option>
-            </select>
-          </div>
           <Button className="w-full bg-gold text-surface-900 hover:bg-[#efcf88]">Create account</Button>
         </form>
         <div className="mt-5 flex flex-wrap gap-4 text-sm text-white/70">

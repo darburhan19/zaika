@@ -3,7 +3,16 @@ import { useAuthStore } from '../store/useAuthStore.js';
 
 const rawApiUrl = import.meta.env.VITE_API_URL?.trim();
 const defaultApiUrl = 'http://localhost:5000/api';
-const apiBaseURL = rawApiUrl && /^https?:\/\//.test(rawApiUrl) ? rawApiUrl : defaultApiUrl;
+const normalizeApiBaseUrl = (value) => {
+  if (!value || !/^https?:\/\//.test(value)) {
+    return defaultApiUrl;
+  }
+
+  const trimmed = value.replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const apiBaseURL = normalizeApiBaseUrl(rawApiUrl);
 
 if (rawApiUrl && apiBaseURL === defaultApiUrl) {
   console.warn(`Invalid VITE_API_URL value: ${rawApiUrl}. Falling back to ${defaultApiUrl}`);
