@@ -1,8 +1,16 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore.js';
 
+const rawApiUrl = import.meta.env.VITE_API_URL?.trim();
+const defaultApiUrl = 'http://localhost:5000/api';
+const apiBaseURL = rawApiUrl && /^https?:\/\//.test(rawApiUrl) ? rawApiUrl : defaultApiUrl;
+
+if (rawApiUrl && apiBaseURL === defaultApiUrl) {
+  console.warn(`Invalid VITE_API_URL value: ${rawApiUrl}. Falling back to ${defaultApiUrl}`);
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
+  baseURL: apiBaseURL,
   withCredentials: true
 });
 
@@ -22,7 +30,6 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const skipRefresh =
       originalRequest?.url?.includes('/auth/login') ||
-      originalRequest?.url?.includes('/auth/register') ||
       originalRequest?.url?.includes('/auth/refresh') ||
       originalRequest?.url?.includes('/auth/forgot-password') ||
       originalRequest?.url?.includes('/auth/reset-password');
@@ -32,7 +39,7 @@ api.interceptors.response.use(
       refreshing = true;
       try {
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/refresh`,
+          `${apiBaseURL}/auth/refresh`,
           {},
           { withCredentials: true }
         );

@@ -1,12 +1,45 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, UtensilsCrossed, MapPinned, Clock3 } from 'lucide-react';
 import { Seo } from '../components/Seo.jsx';
 import { Button, GlassCard, SectionHeading } from '../components/ui.jsx';
-import { featuredDishes, heroHighlights, stats, testimonials } from '../data/mockData.js';
+import { heroHighlights, stats, testimonials } from '../data/mockData.js';
 import { InfoCard } from '../components/InfoCard.jsx';
+import { productService } from '../services/productService.js';
+import { galleryService } from '../services/galleryService.js';
 
 export function HomePage() {
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [galleryItems, setGalleryItems] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    productService
+      .getProducts({ featured: true })
+      .then((response) => {
+        const products = response.data?.products || [];
+        if (!mounted) return;
+
+        setFeaturedProducts(products.slice(0, 6));
+      });
+
+    galleryService
+      .getGalleryItems()
+      .then((response) => {
+        if (!mounted) return;
+        setGalleryItems((response.data?.items || []).slice(0, 4));
+      })
+      .catch(() => {
+        if (mounted) setGalleryItems([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <>
       <Seo
@@ -57,6 +90,11 @@ export function HomePage() {
             <img
               src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80"
               alt="Zaika restaurant banner"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1400' height='540'><rect fill='%23222' width='100%' height='100%'/><text x='50%' y='50%' fill='%23fff' font-size='36' text-anchor='middle' dominant-baseline='middle'>Zaika</text></svg>";
+              }}
               className="h-[540px] w-full object-cover"
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/70 to-transparent p-6">
@@ -77,27 +115,62 @@ export function HomePage() {
         <SectionHeading
           eyebrow="Featured dishes"
           title="Royal dishes from our kitchen"
-          description="A curated selection of premium plates designed for dine-in, takeaway, and delivery."
+          description="Only admin-added dishes appear here."
         />
         <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {featuredDishes.map((dish) => (
-            <GlassCard key={dish.id} className="overflow-hidden p-0">
-              <img src={dish.image} alt={dish.name} className="h-64 w-full object-cover" />
-              <div className="space-y-4 p-6">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-gold">{dish.category}</p>
-                  <h3 className="mt-2 font-display text-3xl">{dish.name}</h3>
-                  <p className="mt-2 text-sm leading-7 text-white/65">{dish.description}</p>
+          {featuredProducts.length ? (
+            featuredProducts.map((dish) => (
+              <GlassCard key={dish._id || dish.id} className="overflow-hidden p-0">
+                <img
+                  src={dish.image || dish.images?.[0]}
+                  alt={dish.name}
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'><rect fill='%23222' width='100%' height='100%'/><text x='50%' y='50%' fill='%23fff' font-size='24' text-anchor='middle' dominant-baseline='middle'>Dish image</text></svg>";
+                  }}
+                  className="h-72 w-full object-cover"
+                />
+                <div className="space-y-4 p-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-gold">{dish.category?.name || dish.category}</p>
+                    <h3 className="mt-2 font-display text-3xl">{dish.name}</h3>
+                    <p className="mt-2 text-sm leading-7 text-white/65">{dish.description}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xl font-semibold text-gold">Rs. {dish.price}</p>
+                    <div className="flex gap-3">
+                      <Button asChild className="bg-white/5 text-white hover:bg-white/10">
+                        <Link to="/menu">Order now</Link>
+                      </Button>
+                      <Button asChild className="border border-white/10 bg-white/5 text-white hover:bg-white/10">
+                        <Link to="/reservations">Book table</Link>
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-xl font-semibold text-gold">Rs. {dish.price}</p>
-                  <Button asChild className="bg-white/5 text-white hover:bg-white/10">
-                    <Link to="/menu">Order now</Link>
-                  </Button>
-                </div>
-              </div>
+              </GlassCard>
+            ))
+          ) : (
+            <GlassCard className="md:col-span-2 xl:col-span-3">
+              No products added by admin yet.
             </GlassCard>
-          ))}
+          )}
+        </div>
+      </section>
+
+      <section className="mt-16">
+        <SectionHeading eyebrow="Gallery" title="Moments from our kitchen" description="Handpicked images from our dining room and signature plates." />
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {galleryItems.length ? (
+            galleryItems.map((item) => (
+              <GlassCard key={item._id} className="overflow-hidden p-0">
+                <img src={item.imageUrl} alt={item.altText || item.title || 'Gallery'} className="h-44 w-full object-cover" />
+              </GlassCard>
+            ))
+          ) : (
+            <GlassCard>No gallery images yet.</GlassCard>
+          )}
         </div>
       </section>
 

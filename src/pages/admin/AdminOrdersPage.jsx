@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import api from '../../services/api.js';
-import { GlassCard, SectionHeading } from '../../components/ui.jsx';
+import { Button, GlassCard, SectionHeading } from '../../components/ui.jsx';
 import { OrderStatusBadge } from '../../components/OrderStatusBadge.jsx';
 import { Seo } from '../../components/Seo.jsx';
 
 export function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
+  const [error, setError] = useState('');
 
   const loadOrders = async () => {
     const response = await api.get('/admin/orders');
@@ -13,13 +14,24 @@ export function AdminOrdersPage() {
   };
 
   useEffect(() => {
-    loadOrders().catch(() => null);
+    loadOrders().catch(() => setError('Orders could not be loaded.'));
   }, []);
+
+  const deleteOrder = async (id) => {
+    try {
+      setError('');
+      await api.delete(`/admin/orders/${id}`);
+      await loadOrders();
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Unable to delete order.');
+    }
+  };
 
   return (
     <>
       <Seo title="Admin Orders" description="Manage order statuses." />
       <SectionHeading eyebrow="Order management" title="Orders" />
+      {error ? <p className="mt-4 text-sm text-red-300">{error}</p> : null}
       <div className="mt-8 space-y-4">
         {orders.map((order) => (
           <GlassCard key={order._id}>
@@ -44,6 +56,13 @@ export function AdminOrdersPage() {
                   <option value="delivered">Delivered</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
+                <Button
+                  type="button"
+                  onClick={() => deleteOrder(order._id)}
+                  className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
+                >
+                  Delete
+                </Button>
               </div>
             </div>
           </GlassCard>

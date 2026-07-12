@@ -5,7 +5,6 @@ import { Seo } from '../components/Seo.jsx';
 import { Button, GlassCard, SectionHeading } from '../components/ui.jsx';
 import { productService } from '../services/productService.js';
 import { useCartStore } from '../store/useCartStore.js';
-import { featuredDishes } from '../data/mockData.js';
 
 export function FoodDetailsPage() {
   const { identifier } = useParams();
@@ -18,9 +17,9 @@ export function FoodDetailsPage() {
     productService
       .getProducts()
       .then((response) => {
+        const products = response.data?.products || [];
         const match =
-          response.data.products.find((item) => item._id === identifier || item.slug === identifier) ||
-          featuredDishes.find((item) => item.id === identifier);
+          products.find((item) => item._id === identifier || item.slug === identifier);
 
         if (match) {
           setProduct({
@@ -28,21 +27,14 @@ export function FoodDetailsPage() {
             images: match.images || [match.image],
             category: match.category || { name: 'Special' }
           });
-          setRelated((response.data.products || []).filter((item) => item._id !== match._id).slice(0, 4));
+          setRelated(products.filter((item) => item._id !== match._id).slice(0, 4));
         }
       })
-      .catch(() => {
-        const fallback = featuredDishes.find((item) => item.id === identifier) || featuredDishes[0];
-        setProduct({
-          ...fallback,
-          images: [fallback.image],
-          category: { name: fallback.category }
-        });
-      });
+      .catch(() => null);
   }, [identifier]);
 
   if (!product) {
-    return <GlassCard>Loading dish details...</GlassCard>;
+    return <GlassCard>Dish not found.</GlassCard>;
   }
 
   const price = product.discountedPrice || product.price;

@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { CreditCard, Truck } from 'lucide-react';
 import { Seo } from '../components/Seo.jsx';
 import { Button, GlassCard, SectionHeading } from '../components/ui.jsx';
+import Toast from '../components/Toast.jsx';
 import { FormField, FormTextArea } from '../components/FormField.jsx';
 import { useCartStore } from '../store/useCartStore.js';
 import { useAuthStore } from '../store/useAuthStore.js';
 import { orderService } from '../services/orderService.js';
-import { authService } from '../services/authService.js';
 
 const schema = z.object({
   fullName: z.string().min(2),
@@ -43,10 +44,14 @@ export function CheckoutPage() {
   const clearCart = useCartStore((state) => state.clearCart);
   const user = useAuthStore((state) => state.user);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'info' });
   const { register, handleSubmit, setValue } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { paymentMethod: 'razorpay' }
+    defaultValues: { paymentMethod: 'cod' }
   });
+
+  const cartCount = useMemo(() => items.reduce((count, item) => count + item.quantity, 0), [items]);
 
   useEffect(() => {
     if (user) {
@@ -76,40 +81,61 @@ export function CheckoutPage() {
       couponCode: values.couponCode,
       notes: values.notes
     };
+    // include cart items from local store so server can create the order if server-side cart is empty
+    if (items && items.length) {
+      payload.items = items.map((it) => ({ product: it.id, quantity: it.quantity }));
+    }
 
-    const response = await orderService.createOrder(payload);
-    if (values.paymentMethod === 'razorpay' && response.data.razorpayOrder) {
-      const loaded = await loadRazorpayScript();
-      if (!loaded) {
-        setMessage('Razorpay failed to load.');
+    try {
+      setLoading(true);
+      const response = await orderService.createOrder(payload);
+      if (response.data?.order?.orderNumber) {
+        localStorage.setItem('zaika-last-order-number', response.data.order.orderNumber);
+      }
+
+      if (values.paymentMethod === 'razorpay' && response.data.razorpayOrder) {
+        const loaded = await loadRazorpayScript();
+        if (!loaded) {
+          setMessage('Razorpay failed to load.');
+          return;
+        }
+
+        const options = {
+          key: response.data.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: response.data.razorpayOrder.amount,
+          currency: response.data.razorpayOrder.currency,
+          name: 'Zaika Restaurant',
+          description: 'Food order payment',
+          order_id: response.data.razorpayOrder.id,
+          handler: async function (paymentResponse) {
+            await orderService.verifyPayment({
+              razorpayOrderId: paymentResponse.razorpay_order_id,
+              razorpayPaymentId: paymentResponse.razorpay_payment_id,
+              razorpaySignature: paymentResponse.razorpay_signature
+            });
+            clearCart();
+            navigate('/orders');
+          }
+        };
+
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
         return;
       }
 
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: response.data.razorpayOrder.amount,
-        currency: response.data.razorpayOrder.currency,
-        name: 'Zaika Restaurant',
-        description: 'Food order payment',
-        order_id: response.data.razorpayOrder.id,
-        handler: async function (paymentResponse) {
-          await orderService.verifyPayment({
-            razorpayOrderId: paymentResponse.razorpay_order_id,
-            razorpayPaymentId: paymentResponse.razorpay_payment_id,
-            razorpaySignature: paymentResponse.razorpay_signature
-          });
-          clearCart();
-          navigate('/orders');
-        }
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-      return;
+      clearCart();
+      setToast({
+        message: `Order placed successfully. Order No: ${response.data.order?.orderNumber || 'pending'}`,
+        type: 'success'
+      });
+      navigate('/orders', { state: { highlightOrderNumber: response.data.order?.orderNumber } });
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || 'Order failed.';
+      setToast({ message: msg, type: 'error' });
+      setMessage(msg);
+    } finally {
+      setLoading(false);
     }
-
-    clearCart();
-    navigate('/orders');
   };
 
   return (
@@ -128,33 +154,70 @@ export function CheckoutPage() {
             <FormField label="PIN Code" {...register('pinCode')} />
             <FormField label="Landmark" {...register('landmark')} />
             <FormField label="Coupon code" {...register('couponCode')} />
-            <label className="block space-y-2">
+            <div className="md:col-span-2 space-y-2">
               <span className="text-sm text-white/75">Payment method</span>
-              <select
-                {...register('paymentMethod')}
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
-              >
-                <option value="razorpay">Razorpay</option>
-                <option value="cod">Cash on delivery</option>
-              </select>
-            </label>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="cursor-pointer rounded-3xl border border-white/10 bg-white/5 p-4 transition hover:border-gold/40 hover:bg-white/10">
+                  <input type="radio" value="cod" className="sr-only peer" {...register('paymentMethod')} />
+                  <div className="flex items-start gap-3 rounded-2xl border border-transparent p-1 transition peer-checked:border-gold/50 peer-checked:bg-gold/10">
+                    <Truck className="mt-0.5 text-gold" size={18} />
+                    <div>
+                      <p className="font-semibold text-white">Cash on Delivery</p>
+                      <p className="mt-1 text-sm text-white/60">Pay when the order arrives at your door.</p>
+                    </div>
+                  </div>
+                </label>
+                <label className="cursor-pointer rounded-3xl border border-white/10 bg-white/5 p-4 transition hover:border-gold/40 hover:bg-white/10">
+                  <input type="radio" value="razorpay" className="sr-only peer" {...register('paymentMethod')} />
+                  <div className="flex items-start gap-3 rounded-2xl border border-transparent p-1 transition peer-checked:border-gold/50 peer-checked:bg-gold/10">
+                    <CreditCard className="mt-0.5 text-gold" size={18} />
+                    <div>
+                      <p className="font-semibold text-white">Online Payment</p>
+                      <p className="mt-1 text-sm text-white/60">Pay securely with card, UPI, or wallet.</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
             <FormTextArea label="Order notes" className="md:col-span-2" {...register('notes')} />
             <div className="md:col-span-2">
-              <Button type="submit" className="bg-gold text-surface-900 hover:bg-[#efcf88]">
+              <Button type="submit" className="bg-gold text-surface-900 hover:bg-[#efcf88]" disabled={loading}>
                 Place order
               </Button>
             </div>
           </form>
           {message ? <p className="mt-4 text-sm text-gold">{message}</p> : null}
+          {loading ? <p className="mt-4 text-sm text-white/60">Placing order...</p> : null}
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Button asChild className="border border-white/10 bg-white/5 text-white hover:bg-white/10">
+              <Link to="/orders">View orders fast</Link>
+            </Button>
+            <Button asChild className="border border-white/10 bg-white/5 text-white hover:bg-white/10">
+              <Link to="/cart">Back to cart</Link>
+            </Button>
+          </div>
         </GlassCard>
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'info' })} />
 
         <GlassCard className="space-y-4">
           <SectionHeading eyebrow="Review" title="Cart summary" />
+          <p className="text-xs uppercase tracking-[0.35em] text-gold">{cartCount} items</p>
           <div className="space-y-3 text-sm text-white/75">
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between gap-4">
-                <span className="truncate">{item.name} x {item.quantity}</span>
-                <span>Rs. {item.price * item.quantity}</span>
+              <div key={item.id} className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-12 w-12 shrink-0 rounded-2xl object-cover"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 shrink-0 rounded-2xl bg-white/5" />
+                  )}
+                  <span className="truncate">{item.name} x {item.quantity}</span>
+                </div>
+                <span className="shrink-0">Rs. {item.price * item.quantity}</span>
               </div>
             ))}
           </div>

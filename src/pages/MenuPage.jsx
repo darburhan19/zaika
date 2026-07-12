@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Seo } from '../components/Seo.jsx';
 import { Button, GlassCard, SectionHeading } from '../components/ui.jsx';
 import { FoodCard } from '../components/FoodCard.jsx';
 import { useDebounce } from '../hooks/useDebounce.js';
 import { productService } from '../services/productService.js';
-import { featuredDishes } from '../data/mockData.js';
 import { useCartStore } from '../store/useCartStore.js';
 
 export function MenuPage() {
@@ -19,18 +19,12 @@ export function MenuPage() {
   useEffect(() => {
     Promise.allSettled([productService.getCategories(), productService.getProducts()])
       .then(([catResult, productResult]) => {
-        if (catResult.status === 'fulfilled') setCategories(catResult.value.data.categories || []);
-        if (productResult.status === 'fulfilled') setProducts(productResult.value.data.products || []);
-        if (productResult.status !== 'fulfilled') {
-          setProducts(
-            featuredDishes.map((item, index) => ({
-              ...item,
-              _id: item.id,
-              slug: item.id,
-              images: [item.image],
-              category: { name: ['Signature', 'Chef Special', 'Vegetarian'][index] }
-            }))
-          );
+        if (catResult.status === 'fulfilled') {
+          setCategories(catResult.value.data.categories || []);
+        }
+
+        if (productResult.status === 'fulfilled') {
+          setProducts(productResult.value?.data?.products || []);
         }
       })
       .finally(() => setLoading(false));
@@ -62,11 +56,12 @@ export function MenuPage() {
           className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-white/30"
         />
         <div className="flex gap-2 overflow-x-auto">
-          <button onClick={() => setCategory('all')} className={`rounded-full px-4 py-3 text-sm ${category === 'all' ? 'bg-gold text-surface-900' : 'bg-white/5 text-white/70'}`}>
+          <button type="button" onClick={() => setCategory('all')} className={`rounded-full px-4 py-3 text-sm ${category === 'all' ? 'bg-gold text-surface-900' : 'bg-white/5 text-white/70'}`}>
             All
           </button>
           {categories.map((item) => (
             <button
+              type="button"
               key={item._id}
               onClick={() => setCategory(item._id)}
               className={`rounded-full px-4 py-3 text-sm whitespace-nowrap ${category === item._id ? 'bg-gold text-surface-900' : 'bg-white/5 text-white/70'}`}
@@ -85,12 +80,12 @@ export function MenuPage() {
             <FoodCard key={product._id || product.id} product={product} onAdd={(item) => addItem(item, 1)} />
           ))
         ) : (
-          <GlassCard className="md:col-span-2 xl:col-span-3">No dishes found.</GlassCard>
+          <GlassCard className="md:col-span-2 xl:col-span-3">No admin-added dishes found.</GlassCard>
         )}
       </div>
       <div className="mt-10 flex justify-center">
         <Button asChild className="bg-gold text-surface-900 hover:bg-[#efcf88]">
-          <a href="/cart">View cart</a>
+          <Link to="/cart">View cart</Link>
         </Button>
       </div>
     </>

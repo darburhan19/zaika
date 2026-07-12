@@ -1,7 +1,8 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Users, CalendarCheck2, Tag, LogOut, Grid2X2, Ticket } from 'lucide-react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, ShoppingBag, Users, CalendarCheck2, Tag, LogOut, Grid2X2, Ticket, MessageSquareText } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore.js';
 import { Button } from '../components/ui.jsx';
+import { authService } from '../services/authService.js';
 
 const links = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -9,12 +10,25 @@ const links = [
   { to: '/admin/categories', label: 'Categories', icon: Grid2X2 },
   { to: '/admin/orders', label: 'Orders', icon: Tag },
   { to: '/admin/reservations', label: 'Reservations', icon: CalendarCheck2 },
+  { to: '/admin/contacts', label: 'Messages', icon: MessageSquareText },
+  { to: '/admin/gallery', label: 'Gallery', icon: Grid2X2 },
   { to: '/admin/coupons', label: 'Coupons', icon: Ticket },
   { to: '/admin/customers', label: 'Customers', icon: Users }
 ];
 
 export function AdminLayout() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch {
+      // ignore logout errors and clear local state anyway
+    }
+    clearAuth();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-surface-900 text-white">
@@ -45,7 +59,8 @@ export function AdminLayout() {
             })}
           </nav>
           <Button
-            onClick={clearAuth}
+            type="button"
+            onClick={handleLogout}
             className="mt-6 w-full border border-white/10 bg-white/5 text-white hover:bg-white/10"
           >
             <LogOut size={16} className="mr-2" />

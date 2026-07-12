@@ -11,11 +11,13 @@ const schema = z.object({ email: z.string().email() });
 
 export function ForgotPasswordPage() {
   const [message, setMessage] = useState('');
+  const [devResetLink, setDevResetLink] = useState('');
   const { register, handleSubmit } = useForm({ resolver: zodResolver(schema) });
 
   const onSubmit = async (values) => {
-    await authService.forgotPassword(values);
-    setMessage('Reset link prepared. Check your email inbox if SMTP is configured.');
+    const response = await authService.forgotPassword(values);
+    setMessage(response.data.message || 'Reset link prepared.');
+    setDevResetLink(response.data.devResetLink || '');
   };
 
   return (
@@ -28,6 +30,11 @@ export function ForgotPasswordPage() {
           <Button className="w-full bg-gold text-surface-900 hover:bg-[#efcf88]">Send reset link</Button>
         </form>
         {message ? <p className="mt-4 text-sm text-gold">{message}</p> : null}
+        {devResetLink ? (
+          <a className="mt-2 block text-sm text-white/70 underline" href={devResetLink}>
+            Open dev reset link
+          </a>
+        ) : null}
       </GlassCard>
     </>
   );

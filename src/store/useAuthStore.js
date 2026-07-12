@@ -8,9 +8,11 @@ export const useAuthStore = create(
       user: null,
       accessToken: null,
       loading: false,
-      setAuth: ({ user, accessToken }) => set({ user, accessToken }),
-      setAccessToken: (accessToken) => set({ accessToken }),
-      clearAuth: () => set({ user: null, accessToken: null }),
+      hasHydrated: false,
+      setAuth: ({ user, accessToken }) => set({ user, accessToken, loading: false }),
+      setAccessToken: (accessToken) => set({ accessToken, loading: false }),
+      clearAuth: () => set({ user: null, accessToken: null, loading: false }),
+      markHydrated: () => set({ hasHydrated: true }),
       hydrate: async () => {
         const { accessToken } = get();
         if (!accessToken) return;
@@ -24,7 +26,22 @@ export const useAuthStore = create(
       }
     }),
     {
-      name: 'zaika-auth'
+      name: 'zaika-auth',
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          state?.markHydrated?.();
+          return;
+        }
+
+        if (state?.accessToken) {
+          Promise.resolve(state.hydrate?.()).finally(() => {
+            state?.markHydrated?.();
+          });
+          return;
+        }
+
+        state?.markHydrated?.();
+      }
     }
   )
 );

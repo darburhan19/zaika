@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,11 +18,20 @@ export function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
   const { register, handleSubmit } = useForm({ resolver: zodResolver(schema) });
+  const [submitError, setSubmitError] = useState('');
 
   const onSubmit = async (values) => {
-    const response = await authService.login(values);
-    setAuth(response.data);
-    navigate('/');
+    setSubmitError('');
+
+    try {
+      const response = await authService.login(values);
+      setAuth(response.data);
+      const role = String(response.data?.user?.role || '').replace(/["']/g, '').trim().toLowerCase();
+      const isAdmin = role.includes('admin') || response.data?.user?.isAdmin === true || response.data?.user?.admin === true;
+      navigate(isAdmin ? '/admin' : '/');
+    } catch (error) {
+      setSubmitError(error?.response?.data?.message || 'Login failed. Please try again.');
+    }
   };
 
   return (
@@ -33,6 +43,7 @@ export function LoginPage() {
         <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <FormField label="Email" {...register('email')} />
           <FormField label="Password" type="password" {...register('password')} />
+          {submitError ? <p className="text-sm text-red-400">{submitError}</p> : null}
           <Button className="w-full bg-gold text-surface-900 hover:bg-[#efcf88]">Sign in</Button>
         </form>
         <div className="mt-5 flex flex-wrap gap-4 text-sm text-white/70">

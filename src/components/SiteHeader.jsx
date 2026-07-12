@@ -15,7 +15,7 @@ const navLinks = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
-  const items = useCartStore((state) => state.items);
+  const cartCount = useCartStore((state) => state.itemCount());
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-surface-900/80 backdrop-blur-2xl">
@@ -48,11 +48,14 @@ export function SiteHeader() {
           <Button asChild className="border border-gold/30 bg-gold/10 text-gold hover:bg-gold/20">
             <Link to="/cart">
               <ShoppingBag size={16} className="mr-2" />
-              Cart ({items.length})
+              Cart ({cartCount})
             </Link>
           </Button>
           <Button asChild className="bg-gold text-surface-900 hover:bg-[#efcf88]">
-            <Link to="/login">Book now</Link>
+            <Link to="/reservations">Book now</Link>
+          </Button>
+          <Button asChild className="border border-white/10 bg-white/5 text-white hover:bg-white/10">
+            <Link to="/register">Register</Link>
           </Button>
         </div>
 
@@ -78,7 +81,13 @@ export function SiteHeader() {
               </NavLink>
             ))}
             <Link to="/cart" onClick={() => setOpen(false)} className="rounded-2xl px-4 py-3 text-white/75 hover:bg-white/5">
-              Cart ({items.length})
+              Cart ({cartCount})
+            </Link>
+            <Link to="/reservations" onClick={() => setOpen(false)} className="rounded-2xl px-4 py-3 text-white/75 hover:bg-white/5">
+              Book now
+            </Link>
+            <Link to="/register" onClick={() => setOpen(false)} className="rounded-2xl px-4 py-3 text-white/75 hover:bg-white/5">
+              Register
             </Link>
           </div>
         </motion.div>

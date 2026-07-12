@@ -1,7 +1,5 @@
-import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useAuthStore } from './store/useAuthStore.js';
 import { MainLayout } from './layouts/MainLayout.jsx';
 import { AuthLayout } from './layouts/AuthLayout.jsx';
 import { AdminLayout } from './layouts/AdminLayout.jsx';
@@ -28,6 +26,8 @@ import { AdminReservationsPage } from './pages/admin/AdminReservationsPage.jsx';
 import { AdminCustomersPage } from './pages/admin/AdminCustomersPage.jsx';
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage.jsx';
 import { AdminCouponsPage } from './pages/admin/AdminCouponsPage.jsx';
+import { AdminContactsPage } from './pages/admin/AdminContactsPage.jsx';
+import { AdminGalleryPage } from './pages/admin/AdminGalleryPage.jsx';
 import { NotFoundPage } from './pages/NotFoundPage.jsx';
 
 function AppShell({ children }) {
@@ -49,12 +49,6 @@ function AppShell({ children }) {
 }
 
 export default function App() {
-  const hydrate = useAuthStore((state) => state.hydrate);
-
-  useEffect(() => {
-    hydrate();
-  }, [hydrate]);
-
   return (
     <div className="font-body">
       <AppShell>
@@ -100,6 +94,8 @@ export default function App() {
             <Route path="categories" element={<AdminCategoriesPage />} />
             <Route path="orders" element={<AdminOrdersPage />} />
             <Route path="reservations" element={<AdminReservationsPage />} />
+            <Route path="contacts" element={<AdminContactsPage />} />
+            <Route path="gallery" element={<AdminGalleryPage />} />
             <Route path="coupons" element={<AdminCouponsPage />} />
             <Route path="customers" element={<AdminCustomersPage />} />
           </Route>

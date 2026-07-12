@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
+import { contactService } from '../services/contactService.js';
 
 const schema = z.object({
   name: z.string().min(2),
@@ -14,11 +15,31 @@ const schema = z.object({
 
 export function ContactPage() {
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const { register, handleSubmit, reset } = useForm({ resolver: zodResolver(schema) });
+  const mapsEmbedUrl = import.meta.env.VITE_GOOGLE_MAPS_EMBED_URL?.trim();
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent('Zaika Restaurant, Handwara, Jammu & Kashmir, India')}`;
+  const businessDetails = {
+    name: 'Zaika Restaurant',
+    address: 'Handwara, Jammu & Kashmir, India',
+    phone: '+91 70000 00000',
+    email: 'hello@zaikarestaurant.in',
+    hours: [
+      { label: 'Monday–Thursday', value: '11:30 AM – 10:30 PM' },
+      { label: 'Friday–Sunday', value: '11:30 AM – 11:30 PM' }
+    ]
+  };
 
-  const onSubmit = async () => {
-    setMessage('We received your message.');
-    reset();
+  const onSubmit = async (values) => {
+    try {
+      const response = await contactService.sendContact(values);
+      setMessage(response.data.message || 'We received your message.');
+      setError('');
+      reset();
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Unable to send your message right now.');
+      setMessage('');
+    }
   };
 
   return (
@@ -34,20 +55,75 @@ export function ContactPage() {
             <Button className="bg-gold text-surface-900 hover:bg-[#efcf88]">Send message</Button>
           </form>
           {message ? <p className="mt-4 text-sm text-gold">{message}</p> : null}
+          {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
         </GlassCard>
         <GlassCard className="space-y-4">
           <p className="text-xs uppercase tracking-[0.35em] text-gold">Business info</p>
-          <p>Zaika Restaurant, Handwara, Jammu & Kashmir, India</p>
-          <p>Phone: +91 70000 00000</p>
-          <p>Email: hello@zaikarestaurant.in</p>
-          <div className="overflow-hidden rounded-3xl border border-white/10">
-            <iframe
-              title="Zaika restaurant map"
-              src={import.meta.env.VITE_GOOGLE_MAPS_EMBED_URL || 'https://www.google.com/maps'}
-              className="h-80 w-full"
-              loading="lazy"
-            />
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-lg font-semibold text-white">{businessDetails.name}</p>
+            <p className="mt-2 text-sm text-white/70">{businessDetails.address}</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button asChild className="bg-gold text-surface-900 hover:bg-[#efcf88]">
+                <a href={`tel:${businessDetails.phone}`}>Call now</a>
+              </Button>
+              <Button asChild className="border border-white/15 bg-white/10 text-white hover:bg-white/20">
+                <a href={`mailto:${businessDetails.email}`}>Email us</a>
+              </Button>
+              <Button asChild className="border border-white/15 bg-white/10 text-white hover:bg-white/20">
+                <a href={directionsUrl} target="_blank" rel="noreferrer">Get directions</a>
+              </Button>
+            </div>
           </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-gold">Phone</p>
+              <a href={`tel:${businessDetails.phone}`} className="mt-2 block text-sm text-white/80 hover:text-gold">
+                {businessDetails.phone}
+              </a>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-gold">Email</p>
+              <a href={`mailto:${businessDetails.email}`} className="mt-2 block break-all text-sm text-white/80 hover:text-gold">
+                {businessDetails.email}
+              </a>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-[0.3em] text-gold">Opening hours</p>
+            <div className="mt-3 space-y-2 text-sm text-white/70">
+              {businessDetails.hours.map((slot) => (
+                <div key={slot.label} className="flex items-center justify-between gap-3">
+                  <span>{slot.label}</span>
+                  <span className="text-white/90">{slot.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-white/70">
+            <p>Dining • Delivery • Takeaway • Friendly service in Handwara.</p>
+          </div>
+
+          {mapsEmbedUrl ? (
+            <div className="overflow-hidden rounded-3xl border border-white/10">
+              <iframe
+                title="Zaika restaurant map"
+                src={mapsEmbedUrl}
+                className="h-80 w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+          ) : (
+            <GlassCard className="border border-white/10 bg-white/5">
+              <p className="text-sm text-white/70">
+                Set VITE_GOOGLE_MAPS_EMBED_URL in frontend/.env to enable the live Google Maps embed.
+              </p>
+            </GlassCard>
+          )}
         </GlassCard>
       </div>
     </>
