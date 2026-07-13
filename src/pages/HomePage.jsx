@@ -131,11 +131,13 @@ export function HomePage() {
                   }}
                   className="h-72 w-full object-cover"
                 />
-                <div className="space-y-4 p-6">
+                <div className="flex h-full flex-col space-y-4 p-6">
                   <div>
                     <p className="text-xs uppercase tracking-[0.3em] text-gold">{dish.category?.name || dish.category}</p>
                     <h3 className="mt-2 font-display text-3xl">{dish.name}</h3>
-                    <p className="mt-2 text-sm leading-7 text-white/65">{dish.description}</p>
+                    <p className="mt-2 text-sm leading-7 text-white/65 line-clamp-3 min-h-[84px]">
+                      {dish.description?.trim() ? dish.description : 'Chef’s description will be available soon.'}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-xl font-semibold text-gold">Rs. {dish.price}</p>

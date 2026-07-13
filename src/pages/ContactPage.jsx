@@ -16,9 +16,13 @@ const schema = z.object({
 export function ContactPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { register, handleSubmit, reset } = useForm({ resolver: zodResolver(schema) });
+
   const mapsEmbedUrl = import.meta.env.VITE_GOOGLE_MAPS_EMBED_URL?.trim();
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent('Zaika Restaurant, Handwara, Jammu & Kashmir, India')}`;
+
   const businessDetails = {
     name: 'Zaika Restaurant',
     address: 'Handwara, Jammu & Kashmir, India',
@@ -32,6 +36,7 @@ export function ContactPage() {
 
   const onSubmit = async (values) => {
     try {
+      setIsSubmitting(true);
       const response = await contactService.sendContact(values);
       setMessage(response.data.message || 'We received your message.');
       setError('');
@@ -39,29 +44,51 @@ export function ContactPage() {
     } catch (err) {
       setError(err?.response?.data?.message || 'Unable to send your message right now.');
       setMessage('');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <>
       <Seo title="Contact" description="Contact Zaika Restaurant and locate us on Google Maps." />
-      <SectionHeading eyebrow="Contact" title="Reach our team" />
+
+      <SectionHeading
+        eyebrow="Contact"
+        title="Reach our team"
+        description="Send us a message and we’ll get back to you soon."
+      />
+
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <GlassCard>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-            <FormField label="Name" {...register('name')} />
-            <FormField label="Email" {...register('email')} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField label="Name" {...register('name')} />
+              <FormField label="Email" {...register('email')} />
+            </div>
+
             <FormTextArea label="Message" {...register('message')} />
-            <Button className="bg-gold text-surface-900 hover:bg-[#efcf88]">Send message</Button>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-gold text-surface-900 hover:bg-[#efcf88] disabled:opacity-60"
+            >
+              {isSubmitting ? 'Sending...' : 'Send message'}
+            </Button>
           </form>
+
           {message ? <p className="mt-4 text-sm text-gold">{message}</p> : null}
           {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
         </GlassCard>
+
         <GlassCard className="space-y-4">
           <p className="text-xs uppercase tracking-[0.35em] text-gold">Business info</p>
+
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="text-lg font-semibold text-white">{businessDetails.name}</p>
             <p className="mt-2 text-sm text-white/70">{businessDetails.address}</p>
+
             <div className="mt-4 flex flex-wrap gap-3">
               <Button asChild className="bg-gold text-surface-900 hover:bg-[#efcf88]">
                 <a href={`tel:${businessDetails.phone}`}>Call now</a>
@@ -70,7 +97,9 @@ export function ContactPage() {
                 <a href={`mailto:${businessDetails.email}`}>Email us</a>
               </Button>
               <Button asChild className="border border-white/15 bg-white/10 text-white hover:bg-white/20">
-                <a href={directionsUrl} target="_blank" rel="noreferrer">Get directions</a>
+                <a href={directionsUrl} target="_blank" rel="noreferrer">
+                  Get directions
+                </a>
               </Button>
             </div>
           </div>
@@ -78,13 +107,20 @@ export function ContactPage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <p className="text-xs uppercase tracking-[0.3em] text-gold">Phone</p>
-              <a href={`tel:${businessDetails.phone}`} className="mt-2 block text-sm text-white/80 hover:text-gold">
+              <a
+                href={`tel:${businessDetails.phone}`}
+                className="mt-2 block text-sm text-white/80 hover:text-gold"
+              >
                 {businessDetails.phone}
               </a>
             </div>
+
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <p className="text-xs uppercase tracking-[0.3em] text-gold">Email</p>
-              <a href={`mailto:${businessDetails.email}`} className="mt-2 block break-all text-sm text-white/80 hover:text-gold">
+              <a
+                href={`mailto:${businessDetails.email}`}
+                className="mt-2 block break-all text-sm text-white/80 hover:text-gold"
+              >
                 {businessDetails.email}
               </a>
             </div>
@@ -120,7 +156,8 @@ export function ContactPage() {
           ) : (
             <GlassCard className="border border-white/10 bg-white/5">
               <p className="text-sm text-white/70">
-                Set VITE_GOOGLE_MAPS_EMBED_URL in frontend/.env to enable the live Google Maps embed.
+                Set <span className="font-semibold">VITE_GOOGLE_MAPS_EMBED_URL</span> in frontend/.env to enable
+                the live Google Maps embed.
               </p>
             </GlassCard>
           )}
@@ -129,3 +166,4 @@ export function ContactPage() {
     </>
   );
 }
+
