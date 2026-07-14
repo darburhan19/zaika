@@ -91,9 +91,14 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 
+  app.get('/', (_, res) => {
+    res.json({ ok: true, service: 'zaika-api' });
+  });
+
   app.get('/api/health', (_, res) => {
     res.json({ ok: true, service: 'zaika-api' });
   });
+
 
   app.use('/api/auth', authRoutes);
   app.use('/api/users', userRoutes);
