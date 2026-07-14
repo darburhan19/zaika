@@ -9,9 +9,6 @@ export default async function connectDb() {
 
     const conn = await mongoose.connect(uri);
 
-    // Avoid collection/index operations during startup.
-    // This prevents errors like: `ns does not exist: <db>.users`
-    // which can break the whole server.
     console.log(`✅ MongoDB Connected: ${conn.connection.host} / ${conn.connection.name}`);
   } catch (error) {
     console.error(`❌ MongoDB Error: ${error.message}`);
