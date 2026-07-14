@@ -17,7 +17,16 @@ export default {
           900: '#0b0b0d'
         },
         gold: '#d7b46a',
-        ember: '#f28f3b'
+        ember: '#f28f3b',
+        zomato: {
+          red: '#E23744',
+          green: '#24963F',
+          ink: '#1C1C1C',
+          mute: '#696969',
+          line: '#E8E8E8',
+          soft: '#F8F8F8',
+          card: '#FFFFFF'
+        }
       },
       fontFamily: {
         display: ['Cormorant Garamond', 'serif'],

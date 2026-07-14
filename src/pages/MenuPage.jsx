@@ -48,15 +48,15 @@ export function MenuPage() {
         description="Search dishes, filter by category, and place your order with a luxury dining feel."
       />
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_auto]">
+      <div className="mt-6 grid gap-3 sm:mt-8 sm:gap-4">
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search dishes..."
-          className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-white/30"
+          className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-white outline-none placeholder:text-white/30"
         />
-        <div className="flex gap-2 overflow-x-auto">
-          <button type="button" onClick={() => setCategory('all')} className={`rounded-full px-4 py-3 text-sm ${category === 'all' ? 'bg-gold text-surface-900' : 'bg-white/5 text-white/70'}`}>
+        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+          <button type="button" onClick={() => setCategory('all')} className={`shrink-0 rounded-full px-4 py-2.5 text-sm ${category === 'all' ? 'bg-gold text-surface-900' : 'bg-white/5 text-white/70'}`}>
             All
           </button>
           {categories.map((item) => (
@@ -64,7 +64,7 @@ export function MenuPage() {
               type="button"
               key={item._id}
               onClick={() => setCategory(item._id)}
-              className={`rounded-full px-4 py-3 text-sm whitespace-nowrap ${category === item._id ? 'bg-gold text-surface-900' : 'bg-white/5 text-white/70'}`}
+              className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2.5 text-sm ${category === item._id ? 'bg-gold text-surface-900' : 'bg-white/5 text-white/70'}`}
             >
               {item.name}
             </button>
@@ -72,7 +72,7 @@ export function MenuPage() {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-6 grid gap-4 sm:mt-8 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
         {loading ? (
           <GlassCard className="md:col-span-2 xl:col-span-3">Loading menu...</GlassCard>
         ) : visibleProducts.length ? (

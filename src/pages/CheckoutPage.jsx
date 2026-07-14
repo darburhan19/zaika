@@ -142,7 +142,7 @@ export function CheckoutPage() {
     <>
       <Seo title="Checkout" description="Secure checkout for your Zaika Restaurant order." />
       <SectionHeading eyebrow="Checkout" title="Complete your order" />
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
+      <div className="mt-6 grid gap-6 sm:mt-8 lg:grid-cols-[1fr_360px] lg:gap-8">
         <GlassCard>
           <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
             <FormField label="Full name" {...register('fullName')} />
@@ -181,7 +181,7 @@ export function CheckoutPage() {
             </div>
             <FormTextArea label="Order notes" className="md:col-span-2" {...register('notes')} />
             <div className="md:col-span-2">
-              <Button type="submit" className="bg-gold text-surface-900 hover:bg-[#efcf88]" disabled={loading}>
+              <Button type="submit" className="w-full bg-gold text-surface-900 hover:bg-[#efcf88] sm:w-auto" disabled={loading}>
                 Place order
               </Button>
             </div>
@@ -199,7 +199,7 @@ export function CheckoutPage() {
         </GlassCard>
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'info' })} />
 
-        <GlassCard className="space-y-4">
+        <GlassCard className="space-y-4 lg:sticky lg:top-28 lg:self-start">
           <SectionHeading eyebrow="Review" title="Cart summary" />
           <p className="text-xs uppercase tracking-[0.35em] text-gold">{cartCount} items</p>
           <div className="space-y-3 text-sm text-white/75">

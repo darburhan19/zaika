@@ -9,10 +9,13 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
+  min-width: 0;
+  overflow-x: hidden;
   font-family: 'Manrope', sans-serif;
   background:
     radial-gradient(circle at top left, rgba(215, 180, 106, 0.08), transparent 25%),
@@ -25,12 +28,43 @@ body {
   box-sizing: border-box;
 }
 
+img,
+video,
+iframe {
+  max-width: 100%;
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
 ::selection {
   background: rgba(215, 180, 106, 0.35);
   color: #fff;
+}
+
+/* Keep horizontal filter chips scrollable without page bleed */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }

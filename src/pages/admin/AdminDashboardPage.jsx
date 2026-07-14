@@ -58,7 +58,7 @@ export function AdminDashboardPage() {
       <Seo title="Admin Dashboard" description="Manage Zaika Restaurant operations." />
       <SectionHeading eyebrow="Dashboard" title="Analytics overview" description="A snapshot of your restaurant performance." />
 
-      <div className="mt-8 grid gap-4 md:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-4">
         {cards.map((c) => (
           <InfoCard key={c.title} title={c.title} value={c.value} />
         ))}

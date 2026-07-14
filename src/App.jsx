@@ -5,6 +5,7 @@ import { AuthLayout } from './layouts/AuthLayout.jsx';
 import { AdminLayout } from './layouts/AdminLayout.jsx';
 import { ProtectedRoute } from './components/ProtectedRoute.jsx';
 import { HomePage } from './pages/HomePage.jsx';
+import { AboutPage } from './pages/AboutPage.jsx';
 import { MenuPage } from './pages/MenuPage.jsx';
 import { FoodDetailsPage } from './pages/FoodDetailsPage.jsx';
 import { CartPage } from './pages/CartPage.jsx';
@@ -55,6 +56,7 @@ export default function App() {
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/menu" element={<MenuPage />} />
             <Route path="/food/:identifier" element={<FoodDetailsPage />} />
             <Route path="/cart" element={<CartPage />} />

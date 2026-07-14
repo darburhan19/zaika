@@ -35,19 +35,19 @@ export function AdminOrdersPage() {
       <div className="mt-8 space-y-4">
         {orders.map((order) => (
           <GlassCard key={order._id}>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="font-display text-2xl">{order.orderNumber}</p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="truncate font-display text-xl sm:text-2xl">{order.orderNumber}</p>
                 <p className="text-sm text-white/65">Rs. {order.total}</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
                 <OrderStatusBadge status={order.status} />
                 <select
                   value={order.status}
                   onChange={(event) =>
                     api.patch(`/orders/${order._id}/status`, { status: event.target.value }).then(() => loadOrders())
                   }
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none"
+                  className="w-full rounded-full border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none sm:w-auto"
                 >
                   <option value="pending">Pending</option>
                   <option value="confirmed">Confirmed</option>
@@ -59,7 +59,7 @@ export function AdminOrdersPage() {
                 <Button
                   type="button"
                   onClick={() => deleteOrder(order._id)}
-                  className="border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
+                  className="w-full border border-red-500/20 bg-red-500/10 text-red-200 hover:bg-red-500/20 sm:w-auto"
                 >
                   Delete
                 </Button>

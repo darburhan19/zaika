@@ -89,14 +89,14 @@ export function ContactPage() {
             <p className="text-lg font-semibold text-white">{businessDetails.name}</p>
             <p className="mt-2 text-sm text-white/70">{businessDetails.address}</p>
 
-            <div className="mt-4 flex flex-wrap gap-3">
-              <Button asChild className="bg-gold text-surface-900 hover:bg-[#efcf88]">
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+              <Button asChild className="w-full bg-gold text-surface-900 hover:bg-[#efcf88] sm:w-auto">
                 <a href={`tel:${businessDetails.phone}`}>Call now</a>
               </Button>
-              <Button asChild className="border border-white/15 bg-white/10 text-white hover:bg-white/20">
+              <Button asChild className="w-full border border-white/15 bg-white/10 text-white hover:bg-white/20 sm:w-auto">
                 <a href={`mailto:${businessDetails.email}`}>Email us</a>
               </Button>
-              <Button asChild className="border border-white/15 bg-white/10 text-white hover:bg-white/20">
+              <Button asChild className="w-full border border-white/15 bg-white/10 text-white hover:bg-white/20 sm:w-auto">
                 <a href={directionsUrl} target="_blank" rel="noreferrer">
                   Get directions
                 </a>
@@ -130,7 +130,7 @@ export function ContactPage() {
             <p className="text-xs uppercase tracking-[0.3em] text-gold">Opening hours</p>
             <div className="mt-3 space-y-2 text-sm text-white/70">
               {businessDetails.hours.map((slot) => (
-                <div key={slot.label} className="flex items-center justify-between gap-3">
+                <div key={slot.label} className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <span>{slot.label}</span>
                   <span className="text-white/90">{slot.value}</span>
                 </div>
@@ -147,7 +147,7 @@ export function ContactPage() {
               <iframe
                 title="Zaika restaurant map"
                 src={mapsEmbedUrl}
-                className="h-80 w-full"
+                className="h-56 w-full sm:h-80"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 allowFullScreen
