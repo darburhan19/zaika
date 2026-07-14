@@ -47,6 +47,9 @@ export function createApp() {
       crossOriginResourcePolicy: false
     })
   );
+  // Important: don't use wildcard '*' when credentials are included
+  app.options('*', cors({ credentials: true, origin: true }));
+
   app.use(
     cors({
       origin(requestOrigin, callback) {
