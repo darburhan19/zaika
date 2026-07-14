@@ -47,8 +47,21 @@ export function createApp() {
       crossOriginResourcePolicy: false
     })
   );
-  // Important: don't use wildcard '*' when credentials are included
-  app.options('*', cors({ credentials: true, origin: true }));
+  // Ensure preflight requests always get proper CORS headers
+  app.options('*', (req, res) => {
+    const origin = req.header('Origin');
+    if (isOriginAllowed(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Vary', 'Origin');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+      );
+      res.header('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
+    }
+    return res.sendStatus(204);
+  });
 
   app.use(
     cors({
@@ -63,6 +76,7 @@ export function createApp() {
       credentials: true
     })
   );
+
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
